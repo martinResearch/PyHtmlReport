@@ -5,9 +5,12 @@ import hashlib
 
 
 class htmlReport():
-    def __init__(self):
+    def __init__(self,defaultImageDirectory='.'):
         self.body=''
-        self.defaultImageDirectory='.'
+	if not os.path.isdir(defaultImageDirectory):
+	    os.makedirs(defaultImageDirectory)
+	
+        self.defaultImageDirectory=defaultImageDirectory
     
     def write(self,string,newline=True):
         self.body+=string
@@ -48,7 +51,9 @@ class htmlReport():
     
     
     
-    def save(self,file):
+    def save(self,file=None):
+	if file is None:
+	    file=os.path.join(self.defaultImageDirectory,'report.html')
         string='<!DOCTYPE html><html><body>'+self.body+'</body></html>' 
         output= open(file, 'w') 
         output.write(string)
