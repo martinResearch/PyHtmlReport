@@ -1,26 +1,40 @@
 import matplotlib.pyplot as plt, mpld3
-from scipy.misc import imread,imsave
+from scipy.misc import imsave
 import os
 import hashlib
 
 
 class htmlReport():
     def __init__(self,defaultImageDirectory='.'):
-        self.body=''
-	if not os.path.isdir(defaultImageDirectory):
-	    os.makedirs(defaultImageDirectory)
+        self.bodyList=[]
+        if not os.path.isdir(defaultImageDirectory):
+            os.makedirs(defaultImageDirectory)
 	
         self.defaultImageDirectory=defaultImageDirectory
     
     def write(self,string,newline=True):
-        self.body+=string
+        self.bodyList.append(string)
         if newline:
             self.newlines()
+            
+    def writeLines(self,lines):
+        for line in lines : 
+            self.write(line)
         
     def newlines(self,n=1):
-        self.body+='<br>\n '*n
+        self.bodyList.append('<br>\n '*n)
+     
         
-    def addPlot(self,fig):
+    def addPlot(self,*args,**kargs):
+        fig = plt.figure()
+        if "title" in kargs : 
+            plt.title(kargs["title"])
+            del(kargs["title"])
+        plt.plot(*args,**kargs)
+        self.addFig(fig)
+        plt.close(fig)
+
+    def addFig(self,fig):
         self.write(mpld3.fig_to_html(fig))
         
     def setDefaultImageDirectory(self,directory):
@@ -42,21 +56,23 @@ class htmlReport():
         
     def includeGraphic(self,src,width=None,height=None,alt=''):
         
-        self.body+='<img src="%s" alt="%s"  align="middle"'%(src,alt)
+        self.bodyList.append('<img src="%s" alt="%s"  align="middle"'%(src,alt))
         if not width is None:
-            self.body+=' width="%d"'%width
+            self.bodyList.append(' width="%d"'%width)
         if not height is None: 
-            self.body+=' height="%d"'%height
-        self.body+='>'
+            self.bodyList.append(' height="%d"'%height)
+        self.bodyList.append('>')
     
     
     
     def save(self,file=None):
-	if file is None:
-	    file=os.path.join(self.defaultImageDirectory,'report.html')
-        string='<!DOCTYPE html><html><body>'+self.body+'</body></html>' 
+        if file is None:
+            file=os.path.join(self.defaultImageDirectory,'report.html')
         output= open(file, 'w') 
-        output.write(string)
+        output.write('<!DOCTYPE html><html><body>')
+        for bodyElt in self.bodyList : 
+            output.write(bodyElt)
+        output.write('</body></html>' )
         output.close()
         
  
