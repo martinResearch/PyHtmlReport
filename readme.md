@@ -21,6 +21,10 @@ it uses [mpld3](https://github.com/mpld3/mpld3)
 
 [dominate](https://github.com/Knio/dominate)
 
+similar projets in other languages:
+
+Matlab : https://github.com/imisra/htmlWriter
+
 
 
 
