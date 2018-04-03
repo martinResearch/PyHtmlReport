@@ -1,1 +1,1 @@
-from PyHtmlReport import *
+from PyHtmlReport.PyHtmlReport import htmlReport
