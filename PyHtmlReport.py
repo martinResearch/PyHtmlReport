@@ -8,12 +8,14 @@ import numpy as np
 # https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js
 #https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css
 class htmlReport():
-    def __init__(self,defaultImageDirectory='.'):
+    def __init__(self,defaultImageDirectory='.',file=None):
         self.bodyList=[]
         self.scriptlist=[]
         self.stylelist=[]  
         self.defaultImageDirectory=defaultImageDirectory
-        self.file=None
+        if file is None:
+            file=os.path.join(self.defaultImageDirectory,'report.html')
+        self.file=file
         self.usePLotly=False
         if not os.path.isdir(defaultImageDirectory):
             os.makedirs(defaultImageDirectory)        
@@ -39,9 +41,15 @@ class htmlReport():
         plt.plot(*args,**kargs)
         self.addFig(fig)
         plt.close(fig)
-
-    def addFig(self,fig,method='mpld3',width=None,height=None):
+    
+    def addFig(self,fig,method=None,width=None,height=None):
         fig.canvas.draw_idle()
+        is3D= hasattr(fig.gca(), 'get_zlim')
+        if method is None:
+            if is3D:
+                method='plotly'
+            else:
+                method='mpld3'
         plt.show()
         
         ax=fig.gca()
@@ -89,21 +97,25 @@ class htmlReport():
         for line in ax.get_lines():
             s={}
             hasline=True
+            color=line.get_color()
             if is3D:
-               
+                if np.any(np.isnan(line._verts3d)):
+                    raise ('nans not handled yet for plotly export')               
                 s['x']=line._verts3d[0].tolist()
                 s['y']=line._verts3d[1].tolist()
                 s['z']=line._verts3d[2].tolist()
                 s['type']= 'scatter3d'
                 s['mode']= 'lines'
             else:
+                if np.any(np.isnan(s['x'])) or np.any(np.isnan(s['y'])):
+                    raise ('nans not handled yet for plotly export')                   
                 s['x']=line.get_xdata().tolist()
                 s['y']=line.get_ydata().tolist()                
                 s['name']=line.get_label()
                 s['legendgroup']=line.get_label()
                 s['showlegend']=True
                 s['line']={'color':color[0:3],'width':line.get_lw()}
-            color=line.get_color()
+            
             
             linesPlotly.append(s)
             
@@ -130,7 +142,8 @@ class htmlReport():
                 s['x']=tmp[:,0].tolist()
                 s['y']=tmp[:,1].tolist()   
                 s['type']= 'scatter'
-                
+                if np.any(np.isnan(s['x'])) or np.any(np.isnan(s['y'])):
+                    raise ('nans not handled yet for plotly export')                  
             
      
             s['mode']=  'markers'
@@ -195,8 +208,10 @@ class htmlReport():
    
     
     def save(self,file=None):
+        
         if file is None:
-            file=os.path.join(self.defaultImageDirectory,'report.html')
+           
+            file=self.file
         output= open(file, 'w') 
         output.write('<!DOCTYPE html><html><body>\n')
         output.write('<head>\n');
