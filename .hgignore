@@ -5,3 +5,4 @@ syntax: glob
 *.bak
 *.py~
 *.md~
+*.py.bak
